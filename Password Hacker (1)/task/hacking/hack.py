@@ -7,6 +7,8 @@ import sys
 
 
 class PasswordHacker:
+    DICTIONARY = r"/home/feztix/documents/coding/python/basic_project/passwords.txt"
+
     def __init__(self):
         # For unpcak using args.Ip/Port/Message
         args = self.init_cli()
@@ -70,15 +72,13 @@ class PasswordHacker:
                 break
 
     # Custom generator
-    def password_generator(self, max_length=10):
-        # Set Complexity
-        lowercase = list(string.ascii_lowercase)
-        digits = list(string.digits)
-
-        for i in range(1, max_length):
-            complexity = itertools.chain(lowercase, digits)
-            for passwd in itertools.product(complexity, repeat=i):
-                yield "".join(passwd)
+    def password_generator(self):
+        with open(PasswordHacker.DICTIONARY, 'r') as file:
+            for passwd_on_line in file:
+                if not passwd_on_line.isdigit():
+                    for var in itertools.product(
+                            *([letter.lower(), letter.upper()] for letter in passwd_on_line.strip("\n"))):
+                        yield "".join(var)
 
     def init(self):
         pass
