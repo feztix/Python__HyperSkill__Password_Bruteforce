@@ -1,9 +1,6 @@
 import argparse
 import itertools
 import socket
-import os
-import string
-import sys
 
 
 class PasswordHacker:
