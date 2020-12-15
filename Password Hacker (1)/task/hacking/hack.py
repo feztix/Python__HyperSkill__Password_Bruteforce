@@ -9,6 +9,9 @@ class PasswordHacker:
     DICTIONARY = r"/home/feztix/documents/coding/python/basic_project/passwords.txt"
     _DICTIONARY = r"/home/feztix/documents/coding/python/Password_Hacker/Password Hacker (1)/task/hacking/logins.txt"
 
+    #debug
+    COUNT = 0
+
     def __init__(self):
         # For unpack using args.Ip/Port/Message
         args = self.init_cli()
@@ -90,18 +93,29 @@ class PasswordHacker:
                     correct_first_letter_of_passwd = (json.loads(find_first_letter_return))['password']
                     print(correct_first_letter_of_passwd)
                     is_correct_letter_of_passwd_find = True
+                    gen_password = self.password_generator(max_length=12)
 
             # find correct password
             if (is_correct_passwd_find == False) and is_correct_letter_of_passwd_find and is_correct_login_find:
                 find_correct_passwd_return = self.find_correct_password(gen_password, correct_login,
                                                                         correct_first_letter_of_passwd,
                                                                         client_socket)
-                is_correct_passwd_find = True
+                # is_correct_passwd_find = True
                 print(find_correct_passwd_return)
-                # if find_correct_passwd_return != None:
-                #     print(find_correct_passwd_return)
-                #     is_correct_passwd_find = True
+                if find_correct_passwd_return != None:
+                    correct_first_letter_of_passwd = (json.loads(find_correct_passwd_return[0]))['password']
+                    if find_correct_passwd_return[1] == "Connection success!":
+                        print("SUUCCCCCESS")
+                        is_correct_passwd_find = True
 
+                    if len(correct_first_letter_of_passwd) >8:
+                        is_correct_passwd_find = True
+                    print(find_correct_passwd_return)
+                    # is_correct_passwd_find = True
+                    # PasswordHacker.COUNT += 1
+                    # if PasswordHacker.COUNT == 1:
+                    #     is_correct_passwd_find = True
+            print("Program running")
             if is_correct_passwd_find:
                 break
 
@@ -128,21 +142,23 @@ class PasswordHacker:
     def find_correct_password(self, gen_passwd, correct_login, first_letter, client_socket):
         # Create password
         # passwd = first_letter
-        gen_passwd = self.password_generator(max_length=4)
+        # gen_passwd = self.password_generator(max_length=4)
         password = next(gen_passwd)
 
-        data, resp = self.send_credentials(correct_login, password, client_socket)
+        data, resp = self.send_credentials(correct_login, first_letter + password, client_socket)
         print(data, resp)
         if resp != "Wrong password!":
-            return data
+            return data, resp
 
     # Custom generator
     def password_generator(self, max_length=2):
         letters = list(string.ascii_letters)
         digits = list(string.digits)
         # print(passwd)
+        print(max_length, "p_gen")
 
         for i in range(1, max_length):
+            print(max_length)
             complexity = itertools.chain(letters, digits)
             for passwd in itertools.product(complexity, repeat=i):
                 yield "".join(passwd)
