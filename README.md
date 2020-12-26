@@ -1,0 +1,2 @@
+# Python__HyperSkill__Password_Bruteforce
+For educational purposes
